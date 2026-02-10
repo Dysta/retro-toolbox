@@ -92,9 +92,9 @@ const Menu = ({
               {process.env.appAuthor}
             </a>
           </p>
-          <Button className="mt-3">
-            <Star data-icon="inline-start" />
+          <Button className="mt-3" asChild>
             <a href={process.env.appRepository} target="_blank">
+              <Star data-icon="inline-start" />
               Star on GitHub
             </a>
           </Button>

@@ -28,9 +28,9 @@ interface UploadLangProps {
 
 export interface FileUploadResponse {
   success: boolean;
-  filename?: string;
-  data?: string;
-  path?: string;
+  filename: string;
+  data: string;
+  path: string;
 }
 
 const UploadLang = ({
@@ -74,7 +74,12 @@ const UploadLang = ({
       });
     } else {
       setError(`Upload failed: ${res.statusText}`);
-      onSuccess?.({ success: false });
+      onSuccess?.({
+        filename: "unknown",
+        data: "none",
+        path: "unknown",
+        success: false,
+      });
     }
     setLoading(false);
   };

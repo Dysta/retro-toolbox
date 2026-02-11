@@ -61,7 +61,7 @@ export async function importScriptsToSWF(
   const lines = modifiedScript.split("\n");
   let fileIndex = 0;
   for (let i = 0; i < lines.length; i += MAX_LINE_PER_FILE) {
-    const chunk = lines.slice(i, i + MAX_LINE_PER_FILE).join("\n");
+    const chunk = lines.slice(i, i + MAX_LINE_PER_FILE).join("\n").trim();
     const fileName =
       fileIndex === 0 ? "DoAction.as" : `DoAction_${fileIndex}.as`;
     await fs.promises.writeFile(
@@ -72,7 +72,6 @@ export async function importScriptsToSWF(
     fileIndex++;
   }
 
-  // Use ffdec to import the modified scripts into a new SWF
   await execFileAsync(
     "ffdec",
     ["-importScript", filename, outputFilename, workDir],

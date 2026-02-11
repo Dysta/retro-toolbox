@@ -1,5 +1,6 @@
 import { extractScriptsFromSWF, importScriptsToSWF } from "@/lib/ffdec";
 import { createTempDir, validateSWF } from "@/lib/files";
+import { secureRoute } from "@/lib/rate-limit";
 import fs from "fs";
 import path from "path";
 
@@ -20,55 +21,59 @@ export interface LangEditorUpdateRequest {
 }
 
 export async function POST(req: Request) {
-  const formData = await req.formData();
-  const file = formData.get("file") as File;
+  return await secureRoute(req, async () => {
+    const formData = await req.formData();
+    const file = formData.get("file") as File;
 
-  if (!file || !(file instanceof File)) {
-    return new Response("No file uploaded", { status: 400 });
-  }
+    if (!file || !(file instanceof File)) {
+      return new Response("No file uploaded", { status: 400 });
+    }
 
-  if (!validateSWF(file)) {
-    return new Response("Invalid file type or size", { status: 400 });
-  }
+    if (!validateSWF(file)) {
+      return new Response("Invalid file type or size", { status: 400 });
+    }
 
-  const workdir = createTempDir("lang-editor");
-  const filePath = path.join(workdir, file.name);
+    const workdir = createTempDir("lang-editor");
+    const filePath = path.join(workdir, file.name);
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.promises.writeFile(filePath, buffer);
+    const buffer = Buffer.from(await file.arrayBuffer());
+    await fs.promises.writeFile(filePath, buffer);
 
-  const script = await extractScriptsFromSWF(filePath);
+    const script = await extractScriptsFromSWF(filePath);
 
-  const responseData: LangEditorResponse = {
-    filename: file.name,
-    data: script,
-    path: workdir,
-  };
+    const responseData: LangEditorResponse = {
+      filename: file.name,
+      data: script,
+      path: workdir,
+    };
 
-  return new Response(JSON.stringify(responseData), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-    },
+    return new Response(JSON.stringify(responseData), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    });
   });
 }
 
 export async function PATCH(req: Request) {
-  const { filename, data, path }: LangEditorUpdateRequest = await req.json();
+  return await secureRoute(req, async () => {
+    const { filename, data, path }: LangEditorUpdateRequest = await req.json();
 
-  if (!filename || !data || !path) {
-    return new Response("Missing required fields", { status: 400 });
-  }
+    if (!filename || !data || !path) {
+      return new Response("Missing required fields", { status: 400 });
+    }
 
-  console.log("Received PATCH request with data:", { filename, path });
-  const outputFile = await importScriptsToSWF(filename, path, data);
-  const fileBuffer = await fs.promises.readFile(outputFile);
+    console.log("Received PATCH request with data:", { filename, path });
+    const outputFile = await importScriptsToSWF(filename, path, data);
+    const fileBuffer = await fs.promises.readFile(outputFile);
 
-  return new Response(fileBuffer, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/x-shockwave-flash",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-    },
+    return new Response(fileBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/x-shockwave-flash",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      },
+    });
   });
 }

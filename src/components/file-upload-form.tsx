@@ -16,6 +16,7 @@ import {
 } from "@/components/diceui/file-upload";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { fetchApi } from "@/lib/utils";
 
 export const title = "Required File Upload";
 
@@ -58,7 +59,7 @@ const UploadLang = ({
 
     const formData = new FormData();
     files.forEach((file) => formData.append("file", file));
-    const res = await fetch("/api/lang-editor", {
+    const res = await fetchApi("/api/lang-editor", {
       method: "POST",
       body: formData,
     });

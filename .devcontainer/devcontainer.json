@@ -8,7 +8,10 @@
     "context": "."
   },
 
-  "containerEnv": { "NEXT_PUBLIC_RUN_MODE": "dev" },
+  "containerEnv": {
+    "NEXT_PUBLIC_RUN_MODE": "dev",
+    "NEXT_PUBLIC_BASE_PATH": "/retro-toolbox"
+  },
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {

@@ -4,11 +4,12 @@ import path from "path";
 import util from "util";
 
 const execFileAsync = util.promisify(execFile);
-const MAX_LINE_PER_FILE = 423;
 
 export async function extractScriptsFromSWF(filePath: string): Promise<string> {
   const workDir = path.dirname(filePath);
   const scriptsDir = path.join(workDir, "scripts", "frame_1");
+
+  await fs.promises.writeFile(path.join(workDir, "write.lock"), "");
 
   await execFileAsync("ffdec", ["-export", "script", ".", filePath], {
     cwd: workDir,
@@ -50,20 +51,26 @@ export async function importScriptsToSWF(
 
   const outputFilename = `edited_${filename}`;
 
-  console.log("Importing modified script into SWF with ffdec", {
+  console.debug("Importing modified script into SWF with ffdec", {
     filename,
     originalFilePath,
     modifiedScriptLength: modifiedScript.length,
     outputFilename,
   });
 
-  // Split modifiedScript into multiple DoAction_XX.as files
+  // * Split modifiedScript into multiple DoAction_XX.as files
+  // ? count number of DoAction.as previously extracted to determine in how many files to split the modifiedScript
+  const doActionCount = (await fs.promises.readdir(scriptsDir)).filter((f) =>
+    f.startsWith("DoAction"),
+  ).length;
   const lines = modifiedScript.split("\n");
-  let fileIndex = 0;
-  for (let i = 0; i < lines.length; i += MAX_LINE_PER_FILE) {
-    const chunk = lines.slice(i, i + MAX_LINE_PER_FILE).join("\n").trim();
+  const linesPerFile = Math.ceil(lines.length / doActionCount) + 1;
+
+  let fileIndex = 1;
+  for (let i = 0; i < lines.length; i += linesPerFile) {
+    const chunk = lines.slice(i, i + linesPerFile).join("\n");
     const fileName =
-      fileIndex === 0 ? "DoAction.as" : `DoAction_${fileIndex}.as`;
+      fileIndex === 1 ? "DoAction.as" : `DoAction_${fileIndex}.as`;
     await fs.promises.writeFile(
       path.join(scriptsDir, fileName),
       chunk,
@@ -79,6 +86,8 @@ export async function importScriptsToSWF(
       cwd: workDir,
     },
   );
+
+  await fs.promises.rm(path.join(workDir, "write.lock"));
 
   return path.join(workDir, outputFilename);
 }

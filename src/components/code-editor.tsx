@@ -13,7 +13,7 @@ interface CodeEditorProps {
   title: string;
   value: string;
   onChange: (newValue: string) => void;
-  onSave: () => void;
+  onSave: () => Promise<void>;
   className?: string;
 }
 
@@ -24,6 +24,7 @@ const CodeEditor = ({
   onSave,
   className,
 }: CodeEditorProps) => {
+  const [isSaving, setIsSaving] = React.useState(false);
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
@@ -38,7 +39,7 @@ const CodeEditor = ({
   return (
     <InputGroup className={`bg-background ${className}`}>
       <InputGroupTextarea
-        className="min-h-[200px] max-h-[550px] overflow-auto"
+        className="min-h-[72dvh] overflow-auto"
         value={value}
         onChange={(e) => {
           onChange(e.target.value);
@@ -50,9 +51,18 @@ const CodeEditor = ({
           className="ml-auto"
           size="sm"
           variant="default"
-          onClick={onSave}
+          disabled={isSaving}
+          onClick={async () => {
+            if (isSaving) return;
+            try {
+              setIsSaving(true);
+              await onSave();
+            } finally {
+              setIsSaving(false);
+            }
+          }}
         >
-          Save
+          Télécharger
           <ArrowDownToLine />
         </InputGroupButton>
       </InputGroupAddon>
@@ -61,6 +71,9 @@ const CodeEditor = ({
           <FileCodeIcon />
           {title || "Output"}
         </InputGroupText>
+        {/* <InputGroupButton className="ml-auto" size="icon-xs">
+          <RefreshCwIcon />
+        </InputGroupButton> */}
       </InputGroupAddon>
     </InputGroup>
   );

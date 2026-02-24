@@ -1,23 +1,21 @@
 "use client";
 
 import CodeEditor from "@/components/code-editor";
-import UploadLang, {
-  FileUploadResponse,
-} from "@/components/file-upload-form-3";
+import UploadLang, { FileUploadResponse } from "@/components/file-upload-form";
+import { fetchApi } from "@/lib/utils";
 import React from "react";
 
 async function saveFile(filename: string, data: string, path: string) {
-  const patchData = {
-    filename: filename,
-    data: data,
-    path: path,
-  };
-  const res = await fetch("/api/lang-editor", {
+  const dataFile = new Blob([data], { type: "text/plain" });
+
+  const formData = new FormData();
+  formData.append("file", dataFile, filename);
+  formData.append("filename", filename);
+  formData.append("path", path);
+
+  const res = await fetchApi("/api/lang-editor", {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(patchData),
+    body: formData,
   });
   if (!res.ok) {
     throw new Error("Failed to save file");
@@ -43,7 +41,7 @@ export default function LangEditor() {
   });
 
   return (
-    <div className="flex justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex justify-center bg-zinc-50 dark:bg-black">
       {data && data.success && (
         <CodeEditor
           title={data.filename}

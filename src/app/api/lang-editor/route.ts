@@ -1,11 +1,13 @@
 import { extractScriptsFromSWF, importScriptsToSWF } from "@/lib/ffdec";
 import { createTempDir, validateSWF } from "@/lib/files";
 import { secureRoute } from "@/lib/rate-limit";
+import { startTmpCleaner } from "@/lib/tmp-cleaner";
 import fs from "fs";
 import path from "path";
 
-export async function GET(req: Request) {
-  return new Response("Lang Editor API is running", { status: 200 });
+if (!(global as any).__tmpCleanerStarted) {
+  startTmpCleaner();
+  (global as any).__tmpCleanerStarted = true;
 }
 
 export interface LangEditorResponse {
@@ -16,8 +18,12 @@ export interface LangEditorResponse {
 
 export interface LangEditorUpdateRequest {
   filename: string;
-  data: string;
+  data: Blob;
   path: string;
+}
+
+export async function GET(req: Request) {
+  return new Response("Lang Editor API is running", { status: 200 });
 }
 
 export async function POST(req: Request) {
@@ -58,11 +64,17 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   return await secureRoute(req, async () => {
-    const { filename, data, path }: LangEditorUpdateRequest = await req.json();
+    const formData = await req.formData();
 
-    if (!filename || !data || !path) {
+    const file = formData.get("file") as File;
+    const filename = formData.get("filename") as string;
+    const path = formData.get("path") as string;
+
+    if (!file || !(file instanceof File) || !filename || !path) {
       return new Response("Missing required fields", { status: 400 });
     }
+
+    const data = await file.text();
 
     console.log("Received PATCH request with data:", { filename, path });
     const outputFile = await importScriptsToSWF(filename, path, data);

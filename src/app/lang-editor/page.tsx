@@ -5,6 +5,11 @@ import UploadLang, { FileUploadResponse } from "@/components/file-upload-form";
 import { fetchApi } from "@/lib/utils";
 import React from "react";
 
+// export const metadata = {
+//   title: "Lang Editor",
+//   description: "Editer vos fichiers de langue Dofus Retro",
+// };
+
 async function saveFile(filename: string, data: string, path: string) {
   const dataFile = new Blob([data], { type: "text/plain" });
 

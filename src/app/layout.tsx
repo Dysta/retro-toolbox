@@ -16,7 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Retro Toolbox",
+  title: {
+    template: "Retro Toolbox - %s",
+    default: "Retro Toolbox",
+  },
   description:
     "A collection of tools for developers, designers, and makers around Dofus retro.",
 };

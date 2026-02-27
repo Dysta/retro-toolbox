@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     appAuthorGithub: "https://github.com/Dysta",
     appRepository: "https://github.com/Dysta/retro-toolbox",
   },
+  output: "standalone",
 };
 
 export default nextConfig;

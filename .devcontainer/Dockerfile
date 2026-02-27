@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get -y autoremove
 
-ARG FFDEC_VERSION=24.1.2
+ARG FFDEC_VERSION=25.1.2
 RUN curl -fsSLo ffdec.deb \
     https://github.com/jindrapetrik/jpexs-decompiler/releases/download/version${FFDEC_VERSION}/ffdec_${FFDEC_VERSION}.deb
 

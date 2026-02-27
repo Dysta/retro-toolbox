@@ -1,0 +1,26 @@
+# # Ignore everything
+# *
+
+# # Allow directories
+# !/src
+# !/public
+# !/app
+
+# # Allow files
+# !/Dockerfile
+# !/bun.lock
+# !/package.json
+# !/next.config.js
+# !/next-env.d.ts
+# !/tsconfig.json
+# !/components.json
+# !/postcss.config.mjs
+# !/README.md
+# !/LICENSE.md
+
+# # Ignore unnecessary files inside allowed directories
+# # This should go after the allowed directories
+# **/*~
+# **/*.log
+# **/.DS_Store
+# **/Thumbs.db

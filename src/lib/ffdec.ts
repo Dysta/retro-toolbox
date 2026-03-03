@@ -9,8 +9,6 @@ export async function extractScriptsFromSWF(filePath: string): Promise<string> {
   const workDir = path.dirname(filePath);
   const scriptsDir = path.join(workDir, "scripts", "frame_1");
 
-  await fs.promises.writeFile(path.join(workDir, "write.lock"), "");
-
   await execFileAsync("ffdec", ["-export", "script", ".", filePath], {
     cwd: workDir,
   });
@@ -86,8 +84,6 @@ export async function importScriptsToSWF(
       cwd: workDir,
     },
   );
-
-  await fs.promises.rm(path.join(workDir, "write.lock"));
 
   return path.join(workDir, outputFilename);
 }

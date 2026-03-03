@@ -10,7 +10,7 @@
 
   "containerEnv": {
     "NEXT_PUBLIC_RUN_MODE": "dev",
-    "NEXT_PUBLIC_BASE_PATH": "/retro-toolbox"
+    "NEXT_PUBLIC_BASE_PATH": ""
   },
 
   // Features to add to the dev container. More info: https://containers.dev/features.

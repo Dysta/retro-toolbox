@@ -30,11 +30,6 @@ export async function tmpCleanerTask() {
       const age = now - stats.mtimeMs;
       if (age < MAX_AGE_MS) continue;
 
-      try {
-        await fs.promises.access(path.join(fullPath, "write.lock"));
-        continue; // lockfile is present, user is editing
-      } catch {}
-
       await fs.promises.rm(fullPath, { recursive: true, force: true });
 
       console.debug(`successfully cleaned folder ${fullPath}`);

@@ -95,7 +95,7 @@ const UploadLang = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`w-full max-w-md space-y-4 ${className}`}
+      className={`w-full max-w-md space-y-4 p-4 ${className}`}
     >
       <div className="space-y-2">
         <Label>

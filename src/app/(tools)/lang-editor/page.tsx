@@ -46,23 +46,28 @@ export default function LangEditor() {
   });
 
   return (
-    <div className="flex justify-center bg-zinc-50 dark:bg-black">
+    <>
       {data && data.success && (
         <CodeEditor
           title={data.filename}
           value={data.data}
-          onChange={(newValue) =>
+          onChange={(newValue, event) =>
             setData((prev) => ({ ...prev, data: newValue }))
           }
           onSave={async () => {
             await saveFile(data.filename, data.data, data.path);
           }}
-          className="w-full max-w-5xl"
+          // className="w-full max-w-5xl"
         />
+        // <Editor
+        //   defaultLanguage="javascript"
+        //   defaultValue={data.data}
+        //   onMount={handleEditorDidMount}
+        // />
       )}
       {!data || !data.success ? (
         <UploadLang title="Lang Editor" onSuccess={setData} />
       ) : null}
-    </div>
+    </>
   );
 }

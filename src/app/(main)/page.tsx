@@ -1,5 +1,5 @@
 import { Menu, MenuCategory } from "@/components/menu";
-import { ClipboardType } from "lucide-react";
+import { ClipboardType, Sparkles } from "lucide-react";
 
 const menuCategories: MenuCategory[] = [
   {
@@ -9,13 +9,13 @@ const menuCategories: MenuCategory[] = [
     link: "/lang-editor",
     beta: true,
   },
-  // {
-  // 	icon: <Sparkles className="size-6" />,
-  // 	title: "Spell editor",
-  // 	description: "Créer vos sorts Dofus Retro",
-  // 	link: "#spells",
-  // 	available: false,
-  // },
+  {
+    icon: <Sparkles className="size-6" />,
+    title: "Spell creator",
+    description: "Créer vos sorts Dofus Retro",
+    link: "/spell-creator",
+    available: false,
+  },
   // {
   // 	icon: <Axe className="size-6" />,
   // 	title: "Items editor",

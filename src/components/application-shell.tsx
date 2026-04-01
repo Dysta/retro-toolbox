@@ -1,13 +1,11 @@
 "use client";
-
+import { ActionButtonsContext } from "@/context/action-buttons";
 import {
-  ArrowDownToLine,
   ChevronRight,
   ChevronsUpDown,
   ClipboardType,
   LayoutDashboard,
   LogOut,
-  SaveIcon,
   User,
 } from "lucide-react";
 import * as React from "react";
@@ -21,8 +19,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Collapsible,
   CollapsibleContent,
@@ -57,11 +53,6 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
@@ -398,36 +389,6 @@ const BreadcrumbBuilder = ({ className }: { className?: string }) => {
   );
 };
 
-const ActionButtons = ({ className }: { className?: string }) => {
-  return (
-    <div className={cn("flex flex-col gap-4", className)}>
-      <ButtonGroup>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="sm" variant="outline">
-              <SaveIcon />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Sauvegarder vos changements</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="sm" variant="default">
-              <ArrowDownToLine />
-              Télécharger
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Télécharger le fichier</p>
-          </TooltipContent>
-        </Tooltip>
-      </ButtonGroup>
-    </div>
-  );
-};
-
 interface ApplicationShellProps {
   children?: React.ReactNode;
   className?: string;
@@ -437,35 +398,39 @@ export function ApplicationShell({
   children,
   className,
 }: ApplicationShellProps) {
+  const [actions, setActions] = React.useState<React.ReactNode>(null);
+
   return (
-    <SidebarProvider className={cn(className)}>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 hidden data-[orientation=vertical]:h-4 md:block"
-          />
-          <a href="#" className="flex items-center gap-2 md:hidden">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-sm bg-primary">
-              <img
-                src={sidebarData.logo.src}
-                alt={sidebarData.logo.alt}
-                className="size-6 text-primary-foreground invert dark:invert-0"
-              />
+    <ActionButtonsContext.Provider value={{ setActions }}>
+      <SidebarProvider className={cn(className)}>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 hidden data-[orientation=vertical]:h-4 md:block"
+            />
+            <a href="#" className="flex items-center gap-2 md:hidden">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-sm bg-primary">
+                <img
+                  src={sidebarData.logo.src}
+                  alt={sidebarData.logo.alt}
+                  className="size-6 text-primary-foreground invert dark:invert-0"
+                />
+              </div>
+              <span className="font-semibold">{sidebarData.logo.title}</span>
+            </a>
+            {actions && <div className="absolute right-4">{actions}</div>}
+            <BreadcrumbBuilder />
+          </header>
+          <div className="flex flex-1 flex-col gap-4">
+            <div className="flex-1 rounded-xl bg-muted/50 md:min-h-min">
+              {children}
             </div>
-            <span className="font-semibold">{sidebarData.logo.title}</span>
-          </a>
-          <ActionButtons className="absolute right-4" />
-          <BreadcrumbBuilder />
-        </header>
-        <div className="flex flex-1 flex-col gap-4">
-          <div className="flex-1 rounded-xl bg-muted/50 md:min-h-min">
-            {children}
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </ActionButtonsContext.Provider>
   );
 }

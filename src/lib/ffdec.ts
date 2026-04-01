@@ -33,7 +33,7 @@ export async function extractScriptsFromSWF(filePath: string): Promise<string> {
       path.join(scriptsDir, f),
       "utf-8",
     );
-    result += content + "\n";
+    result += content;
   }
 
   return result;

@@ -1,16 +1,27 @@
 "use client";
 import CodeEditor from "@/components/code-editor";
 import UploadLang, { FileUploadResponse } from "@/components/file-upload-form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useActionButtons } from "@/hooks/use-action-buttons";
-import { cn, fetchApi } from "@/lib/utils";
-import { ArrowDownToLine, FileText, SaveIcon } from "lucide-react";
+import { fetchApi } from "@/lib/utils";
+import { ArrowDownToLine, FileText, RefreshCcw, SaveIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
@@ -50,34 +61,106 @@ async function saveFile(filename: string, data: string, path: string) {
   URL.revokeObjectURL(url);
 }
 
+const AlertDialogDelete = ({
+  children,
+  onConfirm,
+  onCancel,
+}: {
+  children: React.ReactNode;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+      <AlertDialogContent size="default">
+        <AlertDialogTitle>Importer un nouveau fichier ?</AlertDialogTitle>
+        <AlertDialogDescription>
+          Toutes les données du fichier seront perdues. Cette action est
+          irréversible.
+        </AlertDialogDescription>
+        <AlertDialogFooter>
+          <AlertDialogCancel variant="outline" onClick={onCancel}>
+            Annuler
+          </AlertDialogCancel>
+          <AlertDialogAction variant="secondary" onClick={onConfirm}>
+            Importer
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 const LangEditorActions = ({
   data,
+  setData,
   className,
 }: {
   data: FileUploadResponse;
+  setData: React.Dispatch<React.SetStateAction<FileUploadResponse>>;
   className?: string;
 }) => {
   const [saving, setSaving] = React.useState(false);
 
   return (
     <>
-      <ButtonGroup className={className}>
+      <ButtonGroup>
         <Button
           size="sm"
           variant="outline"
-          disabled={true}
-          className={cn("cursor-default", className)}
+          // disabled={true}
+          className="cursor-default"
         >
           <FileText />
           {data.filename}
         </Button>
         <Tooltip>
           <TooltipTrigger asChild>
+            <AlertDialogDelete
+              onConfirm={() => setData({} as FileUploadResponse)}
+              onCancel={() => {}}
+            >
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={saving || !data || !data.success}
+              >
+                <RefreshCcw />
+              </Button>
+            </AlertDialogDelete>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Importer un nouveau fichier</p>
+          </TooltipContent>
+        </Tooltip>
+      </ButtonGroup>
+
+      <Separator
+        orientation="vertical"
+        className="hidden data-[orientation=vertical]:h-4 md:block"
+      />
+      <ButtonGroup>
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
               size="sm"
               variant="outline"
-              disabled={!data || !data.success}
-              onClick={() => toast.success("Fichier sauvegardé avec succès")}
+              disabled={saving || !data || !data.success}
+              onClick={() => {
+                setSaving(true);
+                toast.promise<{ title: string }>(
+                  () =>
+                    new Promise((resolve) =>
+                      setTimeout(() => resolve({ title: data.filename }), 1500),
+                    ).finally(() => setSaving(false)),
+                  {
+                    loading: "Sauvegarde...",
+                    success: (data) => `${data.title} a été sauvegardé`,
+                    error: "Error",
+                  },
+                );
+              }}
             >
               <SaveIcon />
             </Button>
@@ -92,17 +175,20 @@ const LangEditorActions = ({
               size="sm"
               variant="default"
               disabled={!data || !data.success || saving}
-              onClick={async () => {
-                try {
-                  setSaving(true);
-                  await saveFile(data.filename, data.data, data.path);
-                } catch (error) {
-                  toast.error(
-                    "Failed to save file. Error: " + (error as Error).message,
-                  );
-                } finally {
-                  setSaving(false);
-                }
+              onClick={() => {
+                setSaving(true);
+                toast.promise(
+                  saveFile(data.filename, data.data, data.path)
+                    .then(() => ({
+                      title: data.filename,
+                    }))
+                    .finally(() => setSaving(false)),
+                  {
+                    loading: "Préparation du fichier en cours...",
+                    success: (data) => `${data.title} est prêt`,
+                    error: "Erreur",
+                  },
+                );
               }}
             >
               <ArrowDownToLine />
@@ -125,14 +211,21 @@ export default function LangEditor() {
     path: "unknown",
     success: false,
   });
+  const resetData = () =>
+    setData({
+      filename: "none",
+      data: "undefined",
+      path: "unknown",
+      success: false,
+    });
 
   const hasData = data && data.success;
 
   useActionButtons(() => {
     if (!hasData) return null;
 
-    return <LangEditorActions data={data} />;
-  }, [data]);
+    return <LangEditorActions data={data} setData={resetData} />;
+  }, [hasData, data]);
 
   return (
     <>
@@ -145,11 +238,13 @@ export default function LangEditor() {
           }}
           onSave={() => {
             // await saveFile(data.filename, data.data, data.path);
+            setData((prev) => ({ ...prev, data: prev.data }));
             toast.success("Fichier sauvegardé avec succès");
           }}
         />
       )}
-      {!hasData ? <UploadLang title="Lang Editor" onSuccess={setData} /> : null}
+
+      {!hasData && <UploadLang title="Lang Editor" onSuccess={setData} />}
     </>
   );
 }

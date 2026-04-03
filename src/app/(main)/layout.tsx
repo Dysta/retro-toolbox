@@ -1,5 +1,5 @@
 import ScrollableTabslistExample, {
-    ScrollableTabsItem,
+  ScrollableTabsItem,
 } from "@/components/scrollable-tabslist-basic";
 
 const Navbar: ScrollableTabsItem[] = [

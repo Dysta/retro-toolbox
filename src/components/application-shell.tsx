@@ -1,5 +1,5 @@
 "use client";
-import { ActionButtonsContext } from "@/context/action-buttons";
+import { ActionButtonsContext } from "@/hooks/use-action-buttons";
 import {
   ChevronRight,
   ChevronsUpDown,
@@ -50,7 +50,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarProvider,
-  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -357,7 +356,7 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
       <SidebarFooter>
         {sidebarData.user && <NavUser user={sidebarData.user} />}
       </SidebarFooter>
-      <SidebarRail />
+      {/* <SidebarRail /> */}
     </Sidebar>
   );
 };
@@ -367,7 +366,7 @@ const BreadcrumbBuilder = ({ className }: { className?: string }) => {
   const segments = path.split("/").filter((path) => path);
 
   return (
-    <Breadcrumb className="hidden md:block">
+    <Breadcrumb className={className}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink href="/">ToolBox</BreadcrumbLink>
@@ -421,13 +420,13 @@ export function ApplicationShell({
               </div>
               <span className="font-semibold">{sidebarData.logo.title}</span>
             </a>
-            {actions && <div className="absolute right-4">{actions}</div>}
-            <BreadcrumbBuilder />
+            <BreadcrumbBuilder className="hidden md:flex min-w-0 flex-1" />
+            {actions && (
+              <div className="flex items-center gap-2 shrink-0">{actions}</div>
+            )}
           </header>
-          <div className="flex flex-1 flex-col gap-4">
-            <div className="flex-1 rounded-xl bg-muted/50 md:min-h-min">
-              {children}
-            </div>
+          <div className="flex flex-1 flex-col">
+            <div className="flex-1 rounded-xl">{children}</div>
           </div>
         </SidebarInset>
       </SidebarProvider>

@@ -48,8 +48,8 @@ const UploadLang = ({
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
-    if (files.length !== maxFiles) {
-      setError(`Please upload exactly ${maxFiles} file(s)`);
+    if (files.length !== maxFiles || files.length === 0) {
+      setError(`Please upload exactly ${maxFiles} file`);
       return;
     }
 
@@ -95,7 +95,7 @@ const UploadLang = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`w-full max-w-md space-y-4 p-4 ${className}`}
+      className="max-w-lg w-full mx-auto mt-6 space-y-4 p-4"
     >
       <div className="space-y-2">
         <Label>

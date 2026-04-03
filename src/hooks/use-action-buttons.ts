@@ -1,22 +1,26 @@
-import { ActionButtonsContext } from "@/context/action-buttons";
+"use client";
+
 import React from "react";
 
-function useActionButtonsFactory(
-  factory: () => React.ReactNode,
-  deps: React.DependencyList = [],
-) {
-  const { setActions } = React.useContext(ActionButtonsContext);
+type ActionButtonsContextType = {
+  setActions: (actions: React.ReactNode) => void;
+};
 
-  React.useEffect(() => {
-    setActions(factory());
-    return () => setActions(null);
-  }, [factory, ...deps]);
-}
+export const ActionButtonsContext =
+  React.createContext<ActionButtonsContextType>({
+    setActions: () => {},
+  });
 
 export function useActionButtons(
   factory: () => React.ReactNode,
   deps: React.DependencyList,
 ) {
+  const { setActions } = React.useContext(ActionButtonsContext);
+
   const actions = React.useMemo(factory, deps);
-  useActionButtonsFactory(() => actions, deps);
+
+  React.useEffect(() => {
+    setActions(actions);
+    return () => setActions(null);
+  }, [actions, setActions]);
 }

@@ -1,4 +1,5 @@
 import Editor from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 
 import React from "react";
 
@@ -38,6 +39,10 @@ const CodeEditor = ({
     editorRef.current = editor;
   }
 
+  const { theme, resolvedTheme } = useTheme();
+  const isDark = theme === "dark" || resolvedTheme === "dark";
+  const editorTheme = isDark ? "vs-dark" : "light";
+
   return (
     <Editor
       defaultLanguage="javascript"
@@ -45,6 +50,7 @@ const CodeEditor = ({
       onMount={onMount}
       onChange={onChange}
       className={className}
+      theme={editorTheme}
     />
   );
 };

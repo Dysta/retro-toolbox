@@ -4,8 +4,12 @@ import {
   ChevronRight,
   ChevronsUpDown,
   ClipboardType,
+  Egg,
+  EggFried,
   LayoutDashboard,
   LogOut,
+  Moon,
+  Sun,
   User,
 } from "lucide-react";
 import * as React from "react";
@@ -53,7 +57,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
+import { Button } from "./ui/button";
 
 // Base nav item - used by simple sidebars
 type NavItem = {
@@ -195,11 +201,13 @@ const SidebarLogo = ({ logo }: { logo: SidebarData["logo"] }) => {
       <SidebarMenuItem>
         <SidebarMenuButton size="lg">
           <div className="flex aspect-square size-8 items-center justify-center rounded-sm bg-primary">
-            <img
+            <Egg className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all text-black dark:scale-0" />
+            <EggFried className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-0 transition-all dark:scale-100 dark:text-black" />
+            {/* <img
               src={logo.src}
               alt={logo.alt}
               className="size-6 text-primary-foreground invert dark:invert-0"
-            />
+            /> */}
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
             <span className="font-medium">{logo.title}</span>
@@ -354,6 +362,9 @@ const AppSidebar = ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
         </ScrollArea>
       </SidebarContent>
       <SidebarFooter>
+        <div className="flex items-center justify-left gap-2 p-2">
+          <ModeToggle />
+        </div>
         {sidebarData.user && <NavUser user={sidebarData.user} />}
       </SidebarFooter>
       {/* <SidebarRail /> */}
@@ -387,6 +398,33 @@ const BreadcrumbBuilder = ({ className }: { className?: string }) => {
     </Breadcrumb>
   );
 };
+
+export function ModeToggle() {
+  const { setTheme } = useTheme();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 interface ApplicationShellProps {
   children?: React.ReactNode;

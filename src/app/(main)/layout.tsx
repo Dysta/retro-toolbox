@@ -1,6 +1,6 @@
-import ScrollableTabslistExample, {
+import ScrollableTabslist, {
   ScrollableTabsItem,
-} from "@/components/scrollable-tabslist-basic";
+} from "@/components/scrollable-tabslist";
 
 const Navbar: ScrollableTabsItem[] = [
   { value: "Accueil", link: "/" },
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <>
-      <ScrollableTabslistExample tabs={Navbar} />
+      <ScrollableTabslist tabs={Navbar} />
       {children}
     </>
   );

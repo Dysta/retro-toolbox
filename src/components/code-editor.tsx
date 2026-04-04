@@ -1,12 +1,6 @@
-import { ArrowDownToLine, FileCodeIcon } from "lucide-react";
+import Editor from "@monaco-editor/react";
+import { useTheme } from "next-themes";
 
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupText,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
 import React from "react";
 
 interface CodeEditorProps {
@@ -28,54 +22,36 @@ const CodeEditor = ({
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        if (isSaving) return;
+
+        setIsSaving(true);
         e.preventDefault();
         onSave();
+        setIsSaving(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onSave]);
 
+  const editorRef = React.useRef(null);
+  function onMount(editor, monaco) {
+    editorRef.current = editor;
+  }
+
+  const { theme, resolvedTheme } = useTheme();
+  const isDark = theme === "dark" || resolvedTheme === "dark";
+  const editorTheme = isDark ? "vs-dark" : "light";
+
   return (
-    <InputGroup className={`bg-background ${className}`}>
-      <InputGroupTextarea
-        className="min-h-[72dvh] overflow-auto"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-        }}
-      />
-      <InputGroupAddon align="block-end" className="border-t">
-        <InputGroupText>Line {value.split("\n").length || -1}</InputGroupText>
-        <InputGroupButton
-          className="ml-auto"
-          size="sm"
-          variant="default"
-          disabled={isSaving}
-          onClick={async () => {
-            if (isSaving) return;
-            try {
-              setIsSaving(true);
-              await onSave();
-            } finally {
-              setIsSaving(false);
-            }
-          }}
-        >
-          Télécharger
-          <ArrowDownToLine />
-        </InputGroupButton>
-      </InputGroupAddon>
-      <InputGroupAddon align="block-start" className="border-b">
-        <InputGroupText className="font-mono font-medium">
-          <FileCodeIcon />
-          {title || "Output"}
-        </InputGroupText>
-        {/* <InputGroupButton className="ml-auto" size="icon-xs">
-          <RefreshCwIcon />
-        </InputGroupButton> */}
-      </InputGroupAddon>
-    </InputGroup>
+    <Editor
+      defaultLanguage="javascript"
+      defaultValue={value}
+      onMount={onMount}
+      onChange={onChange}
+      className={className}
+      theme={editorTheme}
+    />
   );
 };
 

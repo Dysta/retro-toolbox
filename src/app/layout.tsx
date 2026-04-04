@@ -1,6 +1,5 @@
-import ScrollableTabslistExample, {
-  ScrollableTabsItem,
-} from "@/components/scrollable-tabslist-basic";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./style.css";
@@ -24,25 +23,25 @@ export const metadata: Metadata = {
     "A collection of tools for developers, designers, and makers around Dofus retro.",
 };
 
-const Navbar: ScrollableTabsItem[] = [
-  { value: "Accueil", link: "/" },
-  { value: "Lang Editor", link: "/lang-editor" },
-  // { value: "Spell Editor", link: "/spell-editor" },
-  // { value: "Items Editor", link: "/items-editor" },
-];
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ScrollableTabslistExample tabs={Navbar} />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

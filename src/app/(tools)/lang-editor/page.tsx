@@ -151,10 +151,9 @@ const LangEditorActions = ({
               onClick={() => {
                 setSaving(true);
                 toast.promise<{ title: string }>(
-                  () =>
-                    new Promise((resolve) =>
-                      setTimeout(() => resolve({ title: data.filename }), 1500),
-                    ).finally(() => setSaving(false)),
+                  new Promise<{ title: string }>((resolve) =>
+                    setTimeout(() => resolve({ title: data.filename }), 1500),
+                  ).finally(() => setSaving(false)),
                   {
                     loading: "Sauvegarde...",
                     success: (data) => `${data.title} a été sauvegardé`,
@@ -237,7 +236,7 @@ export default function LangEditor() {
           onChange={(newValue, event) => {
             setData((prev) => ({ ...prev, data: newValue }));
           }}
-          onSave={() => {
+          onSave={async () => {
             // await saveFile(data.filename, data.data, data.path);
             setData((prev) => ({ ...prev, data: prev.data }));
             toast.success("Fichier sauvegardé avec succès");

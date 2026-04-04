@@ -6,7 +6,7 @@ import React from "react";
 interface CodeEditorProps {
   title: string;
   value: string;
-  onChange: (newValue: string) => void;
+  onChange: (newValue: any, event: any) => void;
   onSave: () => Promise<void>;
   className?: string;
 }
@@ -35,7 +35,7 @@ const CodeEditor = ({
   }, [onSave]);
 
   const editorRef = React.useRef(null);
-  function onMount(editor, monaco) {
+  function onMount(editor: any, monaco: any) {
     editorRef.current = editor;
   }
 

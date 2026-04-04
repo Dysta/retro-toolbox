@@ -227,8 +227,9 @@ const NavMenuItem = ({ item }: { item: NavItem }) => {
   const hasChildren = item.children && item.children.length > 0;
 
   const isActive =
-    item.href &&
-    (pathname === item.href || pathname.startsWith(item.href + "/"));
+    (item.href &&
+      (pathname === item.href || pathname.startsWith(item.href + "/"))) ||
+    false;
 
   if (!hasChildren) {
     return (

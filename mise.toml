@@ -1,0 +1,62 @@
+[tools]
+bun = "1.3.14"
+java = "openjdk-21"
+
+[env]
+FFDEC_VERSION = "26.2.1"
+FFDEC_HOME = "{{config_root}}/.tools/ffdec"
+_.path = [
+  "{{config_root}}/.tools/bin",
+]
+
+[tasks.install]
+description = "Install all project dependencies"
+depends = ["install:ffdec", "install:js"]
+
+[tasks."install:js"]
+description = "Install JavaScript dependencies"
+run = "bun install"
+
+[tasks."install:ffdec"]
+description = "Install FFDec locally"
+run = '''
+set -e
+
+FFDEC_DIR=".tools/ffdec"
+BIN_DIR=".tools/bin"
+
+if [ -x "$BIN_DIR/ffdec" ]; then
+  echo "FFDec already installed"
+  exit 0
+fi
+
+mkdir -p "$FFDEC_DIR" "$BIN_DIR"
+
+curl -fsSL \
+  "https://github.com/jindrapetrik/jpexs-decompiler/releases/download/version${FFDEC_VERSION}/ffdec_${FFDEC_VERSION}.zip" \
+  -o /tmp/ffdec.zip
+
+unzip -q /tmp/ffdec.zip -d "$FFDEC_DIR"
+rm /tmp/ffdec.zip
+
+chmod +x "$FFDEC_DIR/ffdec.sh"
+ln -sf "../ffdec/ffdec.sh" "$BIN_DIR/ffdec"
+
+ffdec -help
+'''
+
+[tasks.serv]
+description = "Start the Next.js development server"
+depends = ["install:ffdec"]
+run = "bun run dev"
+
+[tasks.clean]
+description = "Delete generated files"
+run = "rm -rf .next"
+
+[tasks.reset]
+description = "Reinstall project dependencies"
+run = """
+rm -rf .next node_modules
+bun install
+"""

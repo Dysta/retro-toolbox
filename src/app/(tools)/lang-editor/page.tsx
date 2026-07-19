@@ -14,6 +14,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -30,6 +36,136 @@ import { toast } from "sonner";
 //   title: "Lang Editor",
 //   description: "Editer vos fichiers de langue Dofus Retro",
 // };
+
+type LangField = {
+  key: string;
+  value: string;
+  valueStart: number;
+  valueEnd: number;
+  quote?: string;
+};
+
+type LangEntry = { label?: string; fields: LangField[] };
+
+const getFields = (body: string, bodyStart: number): LangField[] => {
+  const fields: LangField[] = [];
+  let position = 0;
+
+  while (position < body.length) {
+    const key = body.slice(position).match(/^\s*,?\s*([\w$]+)\s*:\s*/);
+    if (!key) break;
+
+    const valueStart = bodyStart + position + key[0].length;
+    let end = position + key[0].length;
+    let depth = 0;
+    let quote = "";
+
+    for (; end < body.length; end++) {
+      const character = body[end];
+      if (quote) {
+        if (character === "\\") end++;
+        else if (character === quote) quote = "";
+      } else if (character === '"' || character === "'") {
+        quote = character;
+      } else if (character === "[" || character === "(" || character === "{") {
+        depth++;
+      } else if (character === "]" || character === ")" || character === "}") {
+        depth--;
+      } else if (character === "," && depth === 0) {
+        break;
+      }
+    }
+
+    const rawValue = body.slice(position + key[0].length, end).trimEnd();
+    const valueQuote = /^["']/.test(rawValue) ? rawValue[0] : undefined;
+    fields.push({
+      key: key[1],
+      value: valueQuote
+        ? rawValue
+          .slice(1, -1)
+          .replace(/\\n/g, "\n")
+          .replace(/\\([\\"'])/g, "$1")
+        : rawValue,
+      valueStart,
+      valueEnd: valueStart + rawValue.length,
+      quote: valueQuote,
+    });
+    position = end + 1;
+  }
+
+  return fields;
+};
+
+// The extracted language files use JavaScript object literals, not strict JSON.
+const getEntries = (source: string): LangEntry[] =>
+  [...source.matchAll(/\{((?:[^{}"']|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')*)\}/g)].map(
+    (object) => {
+      const body = object[1];
+      const objectStart = object.index ?? 0;
+      const bodyStart = objectStart + 1;
+      const label = source
+        .slice(0, objectStart)
+        .match(/(?:^|\n)\s*([^=\n]+?)\s*=\s*$/)?.[1]
+        .trim();
+      return { label, fields: getFields(body, bodyStart) };
+    },
+  );
+
+const LangFields = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) => {
+  const entries = getEntries(value);
+
+  const updateField = (entryIndex: number, fieldIndex: number, newValue: string) => {
+    const field = getEntries(value)[entryIndex]?.fields[fieldIndex];
+    if (!field) return;
+
+    const nextRawValue = field.quote
+      ? `${field.quote}${newValue
+        .replace(/\\/g, "\\\\")
+        .replace(/\n/g, "\\n")
+        .replace(new RegExp(field.quote, "g"), `\\${field.quote}`)}${field.quote}`
+      : newValue;
+    onChange(
+      value.slice(0, field.valueStart) + nextRawValue + value.slice(field.valueEnd),
+    );
+  };
+
+  if (!entries.length) {
+    return <p className="text-muted-foreground">Aucune entrée de langue détectée.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-3 md:grid-cols-3 gap-4 overflow-auto p-1">
+      {entries.map((entry, entryIndex) => (
+        <Collapsible>
+          <fieldset key={entryIndex} className="grid gap-3 rounded-lg border p-4">
+            <CollapsibleTrigger>
+              <legend className="px-1 text-sm font-medium">
+                {entry.label || `Entrée ${entryIndex + 1}`}
+              </legend>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {entry.fields.map((field, fieldIndex) => (
+                <label key={field.key} className="grid gap-1.5 text-sm font-medium">
+                  {field.key}
+                  <Input
+                    value={field.value}
+                    onChange={(event) => updateField(entryIndex, fieldIndex, event.target.value)}
+                  />
+                </label>
+              ))}
+            </CollapsibleContent>
+          </fieldset>
+        </Collapsible>
+      ))}
+    </div >
+  );
+};
 
 async function saveFile(filename: string, data: string, path: string) {
   if (!filename || !data || !path) {
@@ -95,11 +231,14 @@ const AlertDialogDelete = ({
 
 const LangEditorActions = ({
   data,
-  setData,
-  className,
+  resetData,
+  view,
+  setView,
 }: {
   data: FileUploadResponse;
-  setData: React.Dispatch<React.SetStateAction<FileUploadResponse>>;
+  resetData: () => void;
+  view: "simple" | "raw";
+  setView: React.Dispatch<React.SetStateAction<"simple" | "raw">>;
   className?: string;
 }) => {
   const [saving, setSaving] = React.useState(false);
@@ -119,8 +258,8 @@ const LangEditorActions = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <AlertDialogDelete
-              onConfirm={() => setData({} as FileUploadResponse)}
-              onCancel={() => {}}
+              onConfirm={resetData}
+              onCancel={() => { }}
             >
               <Button
                 size="sm"
@@ -137,6 +276,41 @@ const LangEditorActions = ({
         </Tooltip>
       </ButtonGroup>
 
+      <Separator
+        orientation="vertical"
+        className="hidden data-[orientation=vertical]:h-4 md:block"
+      />
+      <ButtonGroup>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant={view === "simple" ? "secondary" : "outline"}
+              onClick={() => setView("simple")}
+            >
+              Simplifié
+            </Button>
+
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Voir en vue simplifiée</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              variant={view === "raw" ? "secondary" : "outline"}
+              onClick={() => setView("raw")}
+            >
+              Raw
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Voir dans l'éditeur de code</p>
+          </TooltipContent>
+        </Tooltip>
+      </ButtonGroup>
       <Separator
         orientation="vertical"
         className="hidden data-[orientation=vertical]:h-4 md:block"
@@ -211,6 +385,9 @@ export default function LangEditor() {
     path: "unknown",
     success: false,
   });
+
+  const [view, setView] = React.useState<"simple" | "raw">("simple");
+
   const resetData = () =>
     setData({
       filename: "none",
@@ -224,24 +401,38 @@ export default function LangEditor() {
   useActionButtons(() => {
     if (!hasData) return null;
 
-    return <LangEditorActions data={data} setData={resetData} />;
-  }, [hasData, data]);
+    return (
+      <LangEditorActions
+        data={data}
+        resetData={resetData}
+        view={view}
+        setView={setView}
+      />
+    );
+  }, [hasData, data, view]);
 
   return (
     <>
       {hasData && (
-        <CodeEditor
-          title={data.filename}
-          value={data.data}
-          onChange={(newValue, event) => {
-            setData((prev) => ({ ...prev, data: newValue }));
-          }}
-          onSave={async () => {
-            // await saveFile(data.filename, data.data, data.path);
-            setData((prev) => ({ ...prev, data: prev.data }));
-            toast.success("Fichier sauvegardé avec succès");
-          }}
-        />
+        <>
+          {view === "simple" ? (
+            <LangFields
+              value={data.data}
+              onChange={(newData) => setData((prev) => ({ ...prev, data: newData }))}
+            />
+          ) : (
+            <CodeEditor
+              title={data.filename}
+              value={data.data}
+              onChange={(newData) =>
+                setData((prev) => ({ ...prev, data: newData }))
+              }
+              onSave={async () => {
+                toast.success("Fichier sauvegardé avec succès");
+              }}
+            />
+          )}
+        </>
       )}
 
       {!hasData && <UploadLang title="Lang Editor" onSuccess={setData} />}

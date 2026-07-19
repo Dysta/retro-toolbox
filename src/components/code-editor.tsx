@@ -46,7 +46,8 @@ const CodeEditor = ({
   return (
     <Editor
       defaultLanguage="javascript"
-      defaultValue={value}
+      defaultValue="No script loaded"
+      value={value}
       onMount={onMount}
       onChange={onChange}
       className={className}
